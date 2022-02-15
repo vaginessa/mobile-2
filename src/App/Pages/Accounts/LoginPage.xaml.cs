@@ -1,18 +1,15 @@
-﻿using Bit.App.Models;
-using Bit.App.Resources;
-using Bit.Core.Abstractions;
-using Bit.Core.Utilities;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Bit.App.Models;
+using Bit.App.Resources;
 using Bit.App.Utilities;
+using Bit.Core.Utilities;
 using Xamarin.Forms;
 
 namespace Bit.App.Pages
 {
     public partial class LoginPage : BaseContentPage
     {
-        private readonly IMessagingService _messagingService;
-        private readonly IStorageService _storageService;
         private readonly LoginPageViewModel _vm;
         private readonly AppOptions _appOptions;
 
@@ -20,9 +17,6 @@ namespace Bit.App.Pages
 
         public LoginPage(string email = null, AppOptions appOptions = null)
         {
-            _storageService = ServiceContainer.Resolve<IStorageService>("storageService");
-            _messagingService = ServiceContainer.Resolve<IMessagingService>("messagingService");
-            _messagingService.Send("showStatusBar", true);
             _appOptions = appOptions;
             InitializeComponent();
             _vm = BindingContext as LoginPageViewModel;
@@ -33,7 +27,7 @@ namespace Bit.App.Pages
                 () => Device.BeginInvokeOnMainThread(async () => await UpdateTempPasswordAsync());
             _vm.CloseAction = async () =>
             {
-                _messagingService.Send("showStatusBar", false);
+                await _accountListOverlay.HideAsync();
                 await Navigation.PopModalAsync();
             };
             _vm.Email = email;
@@ -54,6 +48,11 @@ namespace Bit.App.Pages
             {
                 ToolbarItems.Add(_getPasswordHint);
             }
+
+            if (!_appOptions?.IosExtension ?? false)
+            {
+                ToolbarItems.Remove(_closeItem);
+            }
         }
 
         public Entry MasterPasswordEntry { get; set; }
@@ -61,12 +60,40 @@ namespace Bit.App.Pages
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            _mainContent.Content = _mainLayout;
+            _accountAvatar?.OnAppearing();
+
+            if (await ShowAccountSwitcherAsync())
+            {
+                _vm.AvatarImageSource = await GetAvatarImageSourceAsync();
+            }
+            else
+            {
+                ToolbarItems.Remove(_accountAvatar);
+            }
             await _vm.InitAsync();
             if (!_inputFocused)
             {
                 RequestFocus(string.IsNullOrWhiteSpace(_vm.Email) ? _email : _masterPassword);
                 _inputFocused = true;
             }
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            if (_accountListOverlay.IsVisible)
+            {
+                _accountListOverlay.HideAsync().FireAndForget();
+                return true;
+            }
+            return false;
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            _accountAvatar?.OnDisappearing();
         }
 
         private async void LogIn_Clicked(object sender, EventArgs e)
@@ -95,6 +122,7 @@ namespace Bit.App.Pages
 
         private async void More_Clicked(object sender, System.EventArgs e)
         {
+            await _accountListOverlay.HideAsync();
             if (!DoOnce())
             {
                 return;
