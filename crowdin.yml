@@ -14,6 +14,7 @@ files:
         pt-BR: pt-BR
         en-GB: en-GB
         en-IN: en-IN
+        en-EU: en-EU
   - source: /store/apple/en/copy.resx
     dest: /store/apple/en/%original_file_name%
     translation: /store/apple/%two_letters_code%/copy.resx
@@ -26,6 +27,7 @@ files:
         pt-BR: pt-BR
         en-GB: en-GB
         en-IN: en-IN
+        en-EU: en-EU
   - source: /store/google/en/copy.resx
     dest: /store/google/en/%original_file_name%
     translation: /store/google/%two_letters_code%/copy.resx
@@ -38,3 +40,4 @@ files:
         pt-PT: pt-PT
         en-GB: en-GB
         en-IN: en-IN
+        en-IN: en-EU
