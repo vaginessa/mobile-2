@@ -482,7 +482,7 @@ jobs:
         shell: bash
 
       - name: Update Entitlements
-        if: false()
+        if: false
         run: |
           echo "########################################"
           echo "##### Updating Entitlements"
