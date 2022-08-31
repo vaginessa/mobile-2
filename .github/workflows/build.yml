@@ -109,8 +109,8 @@ jobs:
             --output ./src/Android/app_play-keystore.jks ./.github/secrets/app_play-keystore.jks.gpg
           gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
             --output ./src/Android/app_upload-keystore.jks ./.github/secrets/app_upload-keystore.jks.gpg
-          gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
-            --output ./src/Android/google-services.json ./.github/secrets/google-services.json.gpg
+          # gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
+          #   --output ./src/Android/google-services.json ./.github/secrets/google-services.json.gpg
           gpg --quiet --batch --yes --decrypt --passphrase="$DECRYPT_FILE_PASSWORD" \
             --output $HOME/secrets/play_creds.json ./.github/secrets/play_creds.json.gpg
         shell: bash
@@ -579,33 +579,33 @@ jobs:
           if-no-files-found: error
 
       - name: Install AppCenter CLI
-        # if: |
-        #   (github.ref == 'refs/heads/master'
-        #     && needs.setup.outputs.rc_branch_exists == 0
-        #     && needs.setup.outputs.hotfix_branch_exists == 0)
-        #   || (github.ref == 'refs/heads/rc' && needs.setup.outputs.hotfix_branch_exists == 0)
-        #   || github.ref == 'refs/heads/hotfix-rc'
+        if: |
+          (github.ref == 'refs/heads/master'
+            && needs.setup.outputs.rc_branch_exists == 0
+            && needs.setup.outputs.hotfix_branch_exists == 0)
+          || (github.ref == 'refs/heads/rc' && needs.setup.outputs.hotfix_branch_exists == 0)
+          || github.ref == 'refs/heads/hotfix-rc'
         run: npm install -g appcenter-cli
 
       - name: Upload dSYMs to App Center
-        # if: |
-        #     (github.ref == 'refs/heads/master'
-        #       && needs.setup.outputs.rc_branch_exists == 0
-        #       && needs.setup.outputs.hotfix_branch_exists == 0)
-        #     || (github.ref == 'refs/heads/rc' && needs.setup.outputs.hotfix_branch_exists == 0)
-        #     || github.ref == 'refs/heads/hotfix-rc'
+        if: |
+            (github.ref == 'refs/heads/master'
+              && needs.setup.outputs.rc_branch_exists == 0
+              && needs.setup.outputs.hotfix_branch_exists == 0)
+            || (github.ref == 'refs/heads/rc' && needs.setup.outputs.hotfix_branch_exists == 0)
+            || github.ref == 'refs/heads/hotfix-rc'
         env:
           APPCENTER_IOS_TOKEN: ${{ steps.retrieve-secrets.outputs.appcenter-ios-token }}
         run: appcenter crashes upload-symbols -a bitwarden/bitwarden -s "./bitwarden-export/dSYMs" --token $APPCENTER_IOS_TOKEN
         shell: bash
 
       - name: Deploy to App Store
-        # if: |
-        #     (github.ref == 'refs/heads/master'
-        #       && needs.setup.outputs.rc_branch_exists == 0
-        #       && needs.setup.outputs.hotfix_branch_exists == 0)
-        #     || (github.ref == 'refs/heads/rc' && needs.setup.outputs.hotfix_branch_exists == 0)
-        #     || github.ref == 'refs/heads/hotfix-rc'
+        if: |
+            (github.ref == 'refs/heads/master'
+              && needs.setup.outputs.rc_branch_exists == 0
+              && needs.setup.outputs.hotfix_branch_exists == 0)
+            || (github.ref == 'refs/heads/rc' && needs.setup.outputs.hotfix_branch_exists == 0)
+            || github.ref == 'refs/heads/hotfix-rc'
         env:
           APPLE_ID_USERNAME: ${{ secrets.APPLE_ID_USERNAME }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
